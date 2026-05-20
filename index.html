@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>保守論評 Note下書き生成システム</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #010409;
+      --bg-card: #0d1117;
+      --bg-card-hover: #161b22;
+      --accent: #e94560;
+      --accent-dark: #c73652;
+      --border: #21262d;
+      --text: #c9d1d9;
+      --text-muted: #8b949e;
+      --text-bright: #f0f6fc;
+      --success: #3fb950;
+      --error: #f85149;
+      --info: #58a6ff;
+      --warning: #d29922;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+
+    /* ヘッダー */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px; }
+    .header h1 span { color: var(--accent); }
+    .header p { color: var(--text-muted); font-size: 12px; }
+
+    /* APIキーバー */
+    .api-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .api-bar label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+    .api-bar input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    .api-bar input:focus { border-color: var(--accent); }
+    .api-bar input::placeholder { color: var(--text-muted); }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 10px 20px;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text-bright); border-bottom-color: var(--accent); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* セクション */
+    .section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 3px; height: 13px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    /* テーマグリッド */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 7px;
+    }
+    .theme-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .theme-item:hover, .theme-item.checked { border-color: var(--accent); background: #1a0a0e; }
+    .theme-item input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+    .theme-label { font-size: 13px; color: var(--text); }
+
+    /* キーワード */
+    .keyword-row { display: flex; gap: 8px; }
+    .keyword-row input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    .keyword-row input:focus { border-color: var(--accent); }
+    .keyword-row input::placeholder { color: var(--text-muted); }
+
+    /* ボタン */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; }
+    .btn-primary:hover:not(:disabled) { opacity: 0.88; }
+    .btn-secondary { background: #21262d; color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #2d333b; border-color: #8b949e; }
+    .btn-blue { background: linear-gradient(135deg, #1f6feb, #1158c7); color: #fff; }
+    .btn-blue:hover:not(:disabled) { opacity: 0.88; }
+    .btn-green { background: linear-gradient(135deg, #238636, #1a6e2e); color: #fff; }
+    .btn-green:hover:not(:disabled) { opacity: 0.88; }
+
+    /* 検索エリア */
+    .search-area { display: flex; justify-content: center; margin-bottom: 20px; }
+    .btn-search { padding: 10px 28px; font-size: 14px; }
+
+    /* ローディング */
+    .loading-spinner {
+      display: inline-block;
+      width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* トピックカード */
+    .topics-container { display: flex; flex-direction: column; gap: 14px; }
+    .topic-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .topic-card:hover { border-color: #30363d; background: var(--bg-card-hover); }
+    .topic-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .topic-headline { font-size: 15px; font-weight: 700; color: var(--text-bright); line-height: 1.4; flex: 1; }
+    .status-badge {
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .status-idle { background: #21262d; color: var(--text-muted); }
+    .status-generating { background: #1f3a5f; color: var(--info); }
+    .status-done { background: #1a3a2a; color: var(--success); }
+    .status-error { background: #3a1a1a; color: var(--error); }
+
+    .topic-summary { color: var(--text-muted); font-size: 13px; margin-bottom: 10px; }
+    .topic-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+    .topic-tag {
+      padding: 2px 7px;
+      background: #1a0a0e;
+      border: 1px solid #3a1020;
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--accent);
+    }
+    .topic-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 600px) { .topic-details { grid-template-columns: 1fr; } }
+    .detail-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 11px;
+    }
+    .detail-box-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; }
+    .detail-box ul { list-style: none; }
+    .detail-box ul li { font-size: 12px; color: var(--text); padding: 2px 0 2px 12px; position: relative; }
+    .detail-box ul li::before { content: '▸'; position: absolute; left: 0; color: var(--accent); font-size: 10px; }
+
+    .topic-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+
+    /* 下書きエリア */
+    .draft-area { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .draft-area textarea {
+      width: 100%;
+      min-height: 280px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .draft-area textarea:focus { border-color: var(--accent); }
+    .draft-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+
+    /* エビデンスタブ */
+    .evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 700px) { .evidence-grid { grid-template-columns: 1fr; } }
+
+    .ev-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .ev-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    select:focus { border-color: var(--accent); }
+    select option { background: #0d1117; }
+
+    .link-list { list-style: none; margin-top: 8px; }
+    .link-list li { margin-bottom: 6px; }
+    .link-list a {
+      color: var(--info);
+      text-decoration: none;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .link-list a:hover { text-decoration: underline; }
+    .link-list a::before { content: '🔗'; font-size: 11px; }
+
+    /* 調査ガイド */
+    .guide-steps { margin-top: 8px; }
+    .guide-step {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .guide-step-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+    .guide-step p { font-size: 13px; color: var(--text); margin-bottom: 4px; }
+    .guide-step a { color: var(--info); font-size: 12px; text-decoration: none; }
+    .guide-step a:hover { text-decoration: underline; }
+
+    /* 国会検索 */
+    .kokkai-row { display: flex; gap: 8px; margin-top: 4px; }
+    .kokkai-row input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    .kokkai-row input:focus { border-color: var(--accent); }
+    .kokkai-row input::placeholder { color: var(--text-muted); }
+
+    /* 情報公開テンプレ */
+    .template-form { display: flex; flex-direction: column; gap: 8px; }
+    .template-form input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    .template-form input:focus { border-color: var(--accent); }
+    .template-form input::placeholder { color: var(--text-muted); }
+    .template-result {
+      margin-top: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+    }
+    .template-result textarea {
+      width: 100%;
+      min-height: 160px;
+      background: transparent;
+      border: none;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 8px;
+    }
+
+    /* メモ帳タブ */
+    .memo-add-form {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .memo-add-form input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .memo-add-form input:focus { border-color: var(--accent); }
+    .memo-add-form input::placeholder { color: var(--text-muted); }
+    .memo-add-form textarea {
+      width: 100%;
+      min-height: 100px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 8px;
+    }
+    .memo-add-form textarea:focus { border-color: var(--accent); }
+    .memo-add-form textarea::placeholder { color: var(--text-muted); }
+
+    .memo-list { display: flex; flex-direction: column; gap: 10px; }
+    .memo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .memo-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .memo-card-title { font-size: 14px; font-weight: 700; color: var(--text-bright); }
+    .memo-card-date { font-size: 11px; color: var(--text-muted); }
+    .memo-card-body {
+      font-size: 13px;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.6;
+    }
+    .memo-card-actions { margin-top: 8px; display: flex; gap: 6px; }
+
+    /* エビデンス添付モーダル */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 14px;
+    }
+    .modal-memo-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .modal-memo-item:hover { border-color: var(--accent); }
+    .modal-memo-item .title { font-size: 13px; font-weight: 700; color: var(--text-bright); margin-bottom: 3px; }
+    .modal-memo-item .preview { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+
+    /* エラー・トースト */
+    .error-msg {
+      background: #3a1a1a;
+      border: 1px solid var(--error);
+      color: var(--error);
+      padding: 9px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1a3a2a;
+      border: 1px solid var(--success);
+      color: var(--success);
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* 空状態 */
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; opacity: 0.5; }
+    .empty-state p { font-size: 13px; }
+
+    /* スクロールバー */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+    /* 全幅セクション */
+    .ev-full { grid-column: 1 / -1; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ヘッダー -->
+  <div class="header">
+    <h1>保守論評 <span>Note</span> 下書き生成システム</h1>
+    <p>保守的観点から日本の政治・社会問題を論評するNote投稿の下書きを生成します</p>
+  </div>
+
+  <!-- APIキーバー -->
+  <div class="api-bar">
+    <label>🔑 APIキー</label>
+    <input type="password" id="apiKeyInput" placeholder="Anthropic APIキー (sk-ant-...)" autocomplete="off">
+    <button class="btn btn-secondary" onclick="saveApiKey()">保存</button>
+    <button class="btn btn-secondary" onclick="clearApiKey()">クリア</button>
+  </div>
+
+  <!-- タブ -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('draft', this)">📝 下書き生成</button>
+    <button class="tab-btn" onclick="switchTab('evidence', this)">🔍 エビデンス収集</button>
+    <button class="tab-btn" onclick="switchTab('memo', this)">📋 メモ帳</button>
+  </div>
+
+  <!-- ===== タブ1: 下書き生成 ===== -->
+  <div id="tab-draft" class="tab-panel active">
+
+    <!-- テーマ選択 -->
+    <div class="section">
+      <div class="section-title">テーマ選択</div>
+      <div class="theme-grid" id="themeGrid">
+        <label class="theme-item"><input type="checkbox" value="koukin" onchange="toggleTheme(this)"><span class="theme-label">💴 公金搾取</span></label>
+        <label class="theme-item"><input type="checkbox" value="nichibenren" onchange="toggleTheme(this)"><span class="theme-label">⚖️ 日弁連・司法</span></label>
+        <label class="theme-item"><input type="checkbox" value="kyosanto" onchange="toggleTheme(this)"><span class="theme-label">🚩 共産党・左翼政党</span></label>
+        <label class="theme-item"><input type="checkbox" value="nikkyoso" onchange="toggleTheme(this)"><span class="theme-label">🏫 日教組・教育</span></label>
+        <label class="theme-item"><input type="checkbox" value="seikatuhogo" onchange="toggleTheme(this)"><span class="theme-label">📋 生活保護</span></label>
+        <label class="theme-item"><input type="checkbox" value="imin" onchange="toggleTheme(this)"><span class="theme-label">🌐 移民・外国人問題</span></label>
+        <label class="theme-item"><input type="checkbox" value="media" onchange="toggleTheme(this)"><span class="theme-label">📰 偏向報道</span></label>
+        <label class="theme-item"><input type="checkbox" value="anpo" onchange="toggleTheme(this)"><span class="theme-label">🛡️ 安全保障</span></label>
+      </div>
+    </div>
+
+    <!-- キーワード -->
+    <div class="section">
+      <div class="section-title">追加キーワード</div>
+      <div class="keyword-row">
+        <input type="text" id="keywordInput" placeholder="例：防衛費増額、外国人労働者、NHK受信料..." onkeydown="if(event.key==='Enter') searchTopics()">
+      </div>
+    </div>
+
+    <!-- 検索ボタン -->
+    <div class="search-area">
+      <button class="btn btn-blue btn-search" id="searchBtn" onclick="searchTopics()">🔍 トピックを検索</button>
+    </div>
+
+    <!-- トピック一覧 -->
+    <div id="topicsContainer">
+      <div class="empty-state">
+        <div class="icon">📝</div>
+        <p>テーマを選択してトピックを検索してください</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== タブ2: エビデンス収集 ===== -->
+  <div id="tab-evidence" class="tab-panel">
+    <div class="evidence-grid">
+
+      <!-- 自治体ドリルダウン -->
+      <div class="ev-section">
+        <div class="ev-section-title">🏛️ 自治体情報リンク</div>
+        <select id="prefSelect" onchange="onPrefChange()">
+          <option value="">都道府県を選択...</option>
+        </select>
+        <select id="citySelect" onchange="onCityChange()">
+          <option value="">市町村を選択...</option>
+        </select>
+        <ul class="link-list" id="municipalLinks"></ul>
+      </div>
+
+      <!-- テーマ別調査ガイド -->
+      <div class="ev-section">
+        <div class="ev-section-title">📖 テーマ別調査ガイド</div>
+        <select id="guideThemeSelect" onchange="renderGuide()">
+          <option value="">テーマを選択...</option>
+          <option value="seikatuhogo">📋 生活保護</option>
+          <option value="koukin">💴 公金搾取・補助金</option>
+          <option value="nichibenren">⚖️ 日弁連・司法</option>
+          <option value="imin">🌐 移民・外国人問題</option>
+          <option value="nikkyoso">🏫 日教組・教育</option>
+        </select>
+        <div id="guideContent"></div>
+      </div>
+
+      <!-- 国会議事録クイック検索 -->
+      <div class="ev-section">
+        <div class="ev-section-title">🏛️ 国会議事録クイック検索</div>
+        <div class="kokkai-row">
+          <input type="text" id="kokkaiKeyword" placeholder="例：外国人 生活保護" onkeydown="if(event.key==='Enter') searchKokkai()">
+          <button class="btn btn-blue" onclick="searchKokkai()">検索</button>
+        </div>
+        <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">国会会議録検索システムを新タブで開きます</p>
+      </div>
+
+      <!-- 情報公開請求テンプレ生成 -->
+      <div class="ev-section">
+        <div class="ev-section-title">📄 情報公開請求テンプレ生成（AI）</div>
+        <div class="template-form">
+          <input type="text" id="templateMunicipality" placeholder="自治体名（例：大阪市）">
+          <input type="text" id="templateTheme" placeholder="請求テーマ（例：外国人生活保護受給者数）">
+          <button class="btn btn-primary" id="templateBtn" onclick="generateTemplate()">✍️ テンプレ生成</button>
+        </div>
+        <div class="template-result" id="templateResult" style="display:none;">
+          <textarea id="templateText"></textarea>
+          <button class="btn btn-secondary" onclick="copyTemplate()">📋 コピー</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== タブ3: メモ帳 ===== -->
+  <div id="tab-memo" class="tab-panel">
+    <div class="memo-add-form">
+      <div class="section-title" style="margin-bottom:10px;">新規メモ追加</div>
+      <input type="text" id="memoTitle" placeholder="タイトル（例：大阪市 生活保護費 2024年度）">
+      <textarea id="memoBody" placeholder="URL・数値・引用などをメモ..."></textarea>
+      <button class="btn btn-green" onclick="addMemo()">＋ メモを追加</button>
+    </div>
+    <div id="memoList">
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <p>メモがありません。調査中に見つけた情報をストックしましょう。</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- エビデンス添付モーダル -->
+<div class="modal-overlay hidden" id="evidenceModal">
+  <div class="modal">
+    <div class="modal-title">📋 エビデンスを添付</div>
+    <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">メモ帳から選択して記事末尾に追記します</p>
+    <div id="modalMemoList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeEvidenceModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- トースト -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 定数 =====
+const API_ENDPOINT = 'https://api.anthropic.com/v1/messages';
+const MODEL = 'claude-sonnet-4-20250514';
+const LS_APIKEY = 'conservative_note_apikey';
+const LS_DRAFTS = 'conservative_note_drafts';
+const LS_MEMOS  = 'conservative_note_memos';
+
+const THEME_LABELS = {
+  koukin: '💴 公金搾取',
+  nichibenren: '⚖️ 日弁連・司法',
+  kyosanto: '🚩 共産党・左翼政党',
+  nikkyoso: '🏫 日教組・教育',
+  seikatuhogo: '📋 生活保護',
+  imin: '🌐 移民・外国人問題',
+  media: '📰 偏向報道',
+  anpo: '🛡️ 安全保障'
+};
+
+const SYSTEM_PROMPT_ARTICLE = `あなたは保守系論客として、日本の政治・社会問題を分析し、Note投稿記事を執筆します。
+
+【スタンス】
+- 財政規律・国益・伝統文化・自助自立を重視する保守的立場
+- 感情論ではなく、公的統計・財務省データ・政府資料を根拠に論じる
+- 左翼的・リベラル的な政策の問題点を具体的数値で指摘する
+- 論評・意見として表現し、事実と意見を明確に区別する
+
+【記事構成】
+- タイトル：インパクトがあり検索されやすいもの
+- 冒頭：問題提起（読者の関心を引く）
+- 本論：事実の整理 → 問題点の指摘 → 保守的観点からの論評
+- 結論：読者へのメッセージ
+- 文字数：1500〜2000字
+- Note向けのマークダウン形式で出力
+
+【注意事項】
+- 特定個人への名誉毀損となる表現は避ける
+- 事実と論評を明確に区別する
+- 公的データの出典を明記する
+- 過激な表現より論理的説得力を重視する`;
+
+// ===== 都道府県・市町村データ =====
+const PREF_CITY_DATA = {
+  "北海道": ["札幌市","函館市","旭川市","釧路市","帯広市","北見市","小樽市","苫小牧市","室蘭市","江別市"],
+  "青森県": ["青森市","弘前市","八戸市","黒石市","五所川原市","十和田市","三沢市","むつ市"],
+  "岩手県": ["盛岡市","宮古市","大船渡市","花巻市","北上市","久慈市","遠野市","一関市","奥州市"],
+  "宮城県": ["仙台市","石巻市","塩竈市","気仙沼市","白石市","名取市","角田市","多賀城市","岩沼市","登米市","栗原市","東松島市","大崎市"],
+  "秋田県": ["秋田市","能代市","横手市","大館市","男鹿市","湯沢市","鹿角市","由利本荘市","潟上市","大仙市","北秋田市","にかほ市","仙北市"],
+  "山形県": ["山形市","米沢市","鶴岡市","酒田市","新庄市","寒河江市","上山市","村山市","長井市","天童市","東根市","尾花沢市","南陽市"],
+  "福島県": ["福島市","会津若松市","郡山市","いわき市","白河市","須賀川市","喜多方市","相馬市","二本松市","田村市","南相馬市","伊達市","本宮市"],
+  "茨城県": ["水戸市","日立市","土浦市","古河市","石岡市","結城市","龍ケ崎市","下妻市","常総市","常陸太田市","高萩市","北茨城市","笠間市","取手市","牛久市","つくば市","ひたちなか市","鹿嶋市","潮来市","守谷市","常陸大宮市","那珂市","筑西市","坂東市","稲敷市","かすみがうら市","桜川市","神栖市","行方市","鉾田市","つくばみらい市","小美玉市"],
+  "栃木県": ["宇都宮市","足利市","栃木市","佐野市","鹿沼市","日光市","小山市","真岡市","大田原市","矢板市","那須塩原市","さくら市","那須烏山市","下野市"],
+  "群馬県": ["前橋市","高崎市","桐生市","伊勢崎市","太田市","沼田市","館林市","渋川市","藤岡市","富岡市","安中市","みどり市"],
+  "埼玉県": ["さいたま市","川越市","熊谷市","川口市","行田市","秩父市","所沢市","飯能市","加須市","本庄市","東松山市","春日部市","狭山市","羽生市","鴻巣市","深谷市","上尾市","草加市","越谷市","蕨市","戸田市","入間市","朝霞市","志木市","和光市","新座市","桶川市","久喜市","北本市","八潮市","富士見市","三郷市","蓮田市","坂戸市","幸手市","鶴ヶ島市","日高市","吉川市","ふじみ野市","白岡市"],
+  "千葉県": ["千葉市","銚子市","市川市","船橋市","館山市","木更津市","松戸市","野田市","茂原市","成田市","佐倉市","東金市","旭市","習志野市","柏市","勝浦市","市原市","流山市","八千代市","我孫子市","鴨川市","鎌ケ谷市","君津市","富津市","浦安市","四街道市","袖ケ浦市","八街市","印西市","白井市","富里市","南房総市","匝瑳市","香取市","山武市","いすみ市","大網白里市"],
+  "東京都": ["千代田区","中央区","港区","新宿区","文京区","台東区","墨田区","江東区","品川区","目黒区","大田区","世田谷区","渋谷区","中野区","杉並区","豊島区","北区","荒川区","板橋区","練馬区","足立区","葛飾区","江戸川区","八王子市","立川市","武蔵野市","三鷹市","青梅市","府中市","昭島市","調布市","町田市","小金井市","小平市","日野市","東村山市","国分寺市","国立市","福生市","狛江市","東大和市","清瀬市","東久留米市","武蔵村山市","多摩市","稲城市","羽村市","あきる野市","西東京市"],
+  "神奈川県": ["横浜市","川崎市","相模原市","横須賀市","平塚市","鎌倉市","藤沢市","小田原市","茅ヶ崎市","逗子市","三浦市","秦野市","厚木市","大和市","伊勢原市","海老名市","座間市","南足柄市","綾瀬市"],
+  "新潟県": ["新潟市","長岡市","三条市","柏崎市","新発田市","小千谷市","加茂市","十日町市","見附市","村上市","燕市","糸魚川市","妙高市","五泉市","上越市","阿賀野市","佐渡市","魚沼市","南魚沼市","胎内市"],
+  "富山県": ["富山市","高岡市","魚津市","氷見市","滑川市","黒部市","砺波市","小矢部市","南砺市","射水市"],
+  "石川県": ["金沢市","七尾市","小松市","輪島市","珠洲市","加賀市","羽咋市","かほく市","白山市","能美市","野々市市"],
+  "福井県": ["福井市","敦賀市","小浜市","大野市","勝山市","鯖江市","あわら市","越前市","坂井市"],
+  "山梨県": ["甲府市","富士吉田市","都留市","山梨市","大月市","韮崎市","南アルプス市","北杜市","甲斐市","笛吹市","上野原市","甲州市","中央市"],
+  "長野県": ["長野市","松本市","上田市","岡谷市","飯田市","諏訪市","須坂市","小諸市","伊那市","駒ヶ根市","中野市","大町市","飯山市","茅野市","塩尻市","佐久市","千曲市","東御市","安曇野市"],
+  "岐阜県": ["岐阜市","大垣市","高山市","多治見市","関市","中津川市","美濃市","瑞浪市","羽島市","恵那市","美濃加茂市","土岐市","各務原市","可児市","山県市","瑞穂市","飛騨市","本巣市","郡上市","下呂市","海津市"],
+  "静岡県": ["静岡市","浜松市","沼津市","熱海市","三島市","富士宮市","伊東市","島田市","富士市","磐田市","焼津市","掛川市","藤枝市","御殿場市","袋井市","下田市","裾野市","湖西市","伊豆市","御前崎市","菊川市","伊豆の国市","牧之原市"],
+  "愛知県": ["名古屋市","豊橋市","岡崎市","一宮市","瀬戸市","半田市","春日井市","豊川市","津島市","碧南市","刈谷市","豊田市","安城市","西尾市","蒲郡市","犬山市","常滑市","江南市","小牧市","稲沢市","新城市","東海市","大府市","知多市","知立市","尾張旭市","高浜市","岩倉市","豊明市","日進市","田原市","愛西市","清須市","北名古屋市","弥富市","みよし市","あま市","長久手市"],
+  "三重県": ["津市","四日市市","伊勢市","松阪市","桑名市","鈴鹿市","名張市","尾鷲市","亀山市","鳥羽市","熊野市","いなべ市","志摩市","伊賀市"],
+  "滋賀県": ["大津市","彦根市","長浜市","近江八幡市","草津市","守山市","栗東市","甲賀市","野洲市","湖南市","高島市","東近江市","米原市"],
+  "京都府": ["京都市","福知山市","舞鶴市","綾部市","宇治市","宮津市","亀岡市","城陽市","向日市","長岡京市","八幡市","京田辺市","京丹後市","南丹市","木津川市"],
+  "大阪府": ["大阪市","堺市","岸和田市","豊中市","池田市","吹田市","泉大津市","高槻市","貝塚市","守口市","枚方市","茨木市","八尾市","泉佐野市","富田林市","寝屋川市","河内長野市","松原市","大東市","和泉市","箕面市","柏原市","羽曳野市","門真市","摂津市","高石市","藤井寺市","東大阪市","泉南市","四條畷市","交野市","大阪狭山市","阪南市"],
+  "兵庫県": ["神戸市","姫路市","尼崎市","明石市","西宮市","洲本市","芦屋市","伊丹市","相生市","豊岡市","加古川市","赤穂市","西脇市","宝塚市","三木市","高砂市","川西市","小野市","三田市","加西市","丹波篠山市","養父市","丹波市","南あわじ市","朝来市","淡路市","宍粟市","加東市","たつの市"],
+  "奈良県": ["奈良市","大和高田市","大和郡山市","天理市","橿原市","桜井市","五條市","御所市","生駒市","香芝市","葛城市","宇陀市"],
+  "和歌山県": ["和歌山市","海南市","橋本市","有田市","御坊市","田辺市","新宮市","紀の川市","岩出市"],
+  "鳥取県": ["鳥取市","米子市","倉吉市","境港市"],
+  "島根県": ["松江市","浜田市","出雲市","益田市","大田市","安来市","江津市","雲南市"],
+  "岡山県": ["岡山市","倉敷市","津山市","玉野市","笠岡市","井原市","総社市","高梁市","新見市","備前市","瀬戸内市","赤磐市","真庭市","美作市","浅口市"],
+  "広島県": ["広島市","呉市","竹原市","三原市","尾道市","福山市","府中市","三次市","庄原市","大竹市","東広島市","廿日市市","安芸高田市","江田島市"],
+  "山口県": ["下関市","宇部市","山口市","萩市","防府市","下松市","岩国市","光市","長門市","柳井市","美祢市","周南市","山陽小野田市"],
+  "徳島県": ["徳島市","鳴門市","小松島市","阿南市","吉野川市","阿波市","美馬市","三好市"],
+  "香川県": ["高松市","丸亀市","坂出市","善通寺市","観音寺市","さぬき市","東かがわ市","三豊市"],
+  "愛媛県": ["松山市","今治市","宇和島市","八幡浜市","新居浜市","西条市","大洲市","伊予市","四国中央市","西予市","東温市"],
+  "高知県": ["高知市","室戸市","安芸市","南国市","土佐市","須崎市","宿毛市","土佐清水市","四万十市","香南市","香美市"],
+  "福岡県": ["福岡市","北九州市","大牟田市","久留米市","直方市","飯塚市","田川市","柳川市","八女市","筑後市","大川市","行橋市","豊前市","中間市","小郡市","筑紫野市","春日市","大野城市","宗像市","太宰府市","古賀市","福津市","うきは市","宮若市","嘉麻市","朝倉市","みやま市","糸島市","那珂川市"],
+  "佐賀県": ["佐賀市","唐津市","鳥栖市","多久市","伊万里市","武雄市","鹿島市","小城市","嬉野市","神埼市"],
+  "長崎県": ["長崎市","佐世保市","島原市","諫早市","大村市","平戸市","松浦市","対馬市","壱岐市","五島市","西海市","雲仙市","南島原市"],
+  "熊本県": ["熊本市","八代市","人吉市","荒尾市","水俣市","玉名市","山鹿市","菊池市","宇土市","上天草市","宇城市","阿蘇市","天草市","合志市"],
+  "大分県": ["大分市","別府市","中津市","日田市","佐伯市","臼杵市","津久見市","竹田市","豊後高田市","杵築市","宇佐市","豊後大野市","由布市","国東市"],
+  "宮崎県": ["宮崎市","都城市","延岡市","日南市","小林市","日向市","串間市","西都市","えびの市"],
+  "鹿児島県": ["鹿児島市","鹿屋市","枕崎市","阿久根市","出水市","指宿市","西之表市","垂水市","薩摩川内市","日置市","曽於市","霧島市","いちき串木野市","南さつま市","志布志市","奄美市","南九州市","伊佐市","姶良市"],
+  "沖縄県": ["那覇市","宜野湾市","石垣市","浦添市","名護市","糸満市","沖縄市","豊見城市","うるま市","宮古島市","南城市"]
+};
+
+// ===== 調査ガイドデータ =====
+const GUIDE_DATA = {
+  seikatuhogo: [
+    { step: "STEP 1", text: "厚労省「被保護者調査」で全国統計を確認", url: "https://www.mhlw.go.jp/toukei/list/74-16b.html" },
+    { step: "STEP 2", text: "自治体決算書で「扶助費」「医療扶助」の金額を確認", url: null, note: "↑ 自治体選択エリアのリンクを使用" },
+    { step: "STEP 3", text: "議会議事録で「外国人 生活保護」の質疑を検索", url: null, note: "↑ 自治体選択エリアのリンクを使用" },
+    { step: "STEP 4", text: "必要に応じて情報公開請求（国籍別受給者数）", url: null, note: "↑ 情報公開テンプレ生成を活用" }
+  ],
+  koukin: [
+    { step: "STEP 1", text: "内閣府NPOポータルで補助金受給団体を検索", url: "https://www.npo-homepage.go.jp/" },
+    { step: "STEP 2", text: "e-Govで府省別予算を確認", url: "https://www.e-gov.go.jp/" },
+    { step: "STEP 3", text: "会計検査院報告書で無駄遣い事例を検索", url: "https://www.jbaudit.go.jp/report/" },
+    { step: "STEP 4", text: "政府電子調達(SEAGIS)で契約情報を確認", url: "https://www.seagis.go.jp/" }
+  ],
+  nichibenren: [
+    { step: "STEP 1", text: "日弁連公式サイトで意見書・声明を検索", url: "https://www.nichibenren.or.jp/activity/document/statement.html" },
+    { step: "STEP 2", text: "国会議事録で「日弁連」関連の質疑を検索", url: "https://kokkai.ndl.go.jp/" },
+    { step: "STEP 3", text: "裁判所ウェブサイトで関連判例を確認", url: "https://www.courts.go.jp/" }
+  ],
+  imin: [
+    { step: "STEP 1", text: "出入国在留管理庁の統計を確認", url: "https://www.moj.go.jp/isa/policies/statistics/" },
+    { step: "STEP 2", text: "厚労省「外国人雇用状況」を確認", url: "https://www.mhlw.go.jp/stf/seisakunitsuite/bunya/koyou_roudou/koyou/gaikokujin/" },
+    { step: "STEP 3", text: "法務省「在留外国人統計」を確認", url: "https://www.moj.go.jp/isa/policies/statistics/toukei_ichiran_touroku.html" },
+    { step: "STEP 4", text: "国会議事録で「外国人 生活保護」を検索", url: "https://kokkai.ndl.go.jp/" }
+  ],
+  nikkyoso: [
+    { step: "STEP 1", text: "文科省「教職員団体への加入状況」を確認", url: "https://www.mext.go.jp/" },
+    { step: "STEP 2", text: "国会議事録で「日教組」関連質疑を検索", url: "https://kokkai.ndl.go.jp/" },
+    { step: "STEP 3", text: "各都道府県教育委員会の予算を確認", url: null, note: "↑ 自治体選択エリアのリンクを使用" }
+  ]
+};
+
+// ===== 状態 =====
+let topics = [];
+let drafts = {};
+let memos = [];
+let evidenceTargetIdx = null;
+
+// ===== 初期化 =====
+function init() {
+  const savedKey = localStorage.getItem(LS_APIKEY);
+  if (savedKey) document.getElementById('apiKeyInput').value = savedKey;
+
+  try { drafts = JSON.parse(localStorage.getItem(LS_DRAFTS)) || {}; } catch(e) { drafts = {}; }
+  try { memos = JSON.parse(localStorage.getItem(LS_MEMOS)) || []; } catch(e) { memos = []; }
+
+  initPrefSelect();
+  renderMemos();
+}
+
+// ===== APIキー =====
+function saveApiKey() {
+  const k = document.getElementById('apiKeyInput').value.trim();
+  if (!k) { alert('APIキーを入力してください'); return; }
+  localStorage.setItem(LS_APIKEY, k);
+  showToast('✓ APIキーを保存しました');
+}
+function clearApiKey() {
+  document.getElementById('apiKeyInput').value = '';
+  localStorage.removeItem(LS_APIKEY);
+  showToast('✓ APIキーをクリアしました');
+}
+function getApiKey() { return document.getElementById('apiKeyInput').value.trim(); }
+
+// ===== タブ切り替え =====
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== テーマ選択 =====
+function toggleTheme(cb) {
+  cb.closest('.theme-item').classList.toggle('checked', cb.checked);
+}
+function getSelectedThemes() {
+  return Array.from(document.querySelectorAll('#themeGrid input:checked')).map(c => c.value);
+}
+
+// ===== Claude API =====
+async function callClaude(systemPrompt, userPrompt, maxTokens = 2000) {
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error('APIキーが設定されていません');
+  const res = await fetch(API_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: maxTokens,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }]
+    })
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(`API Error ${res.status}: ${e.error?.message || res.statusText}`);
+  }
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+// ===== トピック検索 =====
+async function searchTopics() {
+  if (!getApiKey()) { alert('APIキーを入力・保存してください'); return; }
+  const themes = getSelectedThemes();
+  const kw = document.getElementById('keywordInput').value.trim();
+  if (!themes.length && !kw) { alert('テーマを選択するか、キーワードを入力してください'); return; }
+
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>検索中...';
+  const container = document.getElementById('topicsContainer');
+  container.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>トピックを検索中...</p></div>';
+
+  try {
+    const themeLabels = themes.map(id => THEME_LABELS[id]).join('、');
+    const prompt = `以下のテーマについて、最近の日本のニュースや政策動向を分析し、
+保守的観点から問題提起できるトピックを5件ピックアップしてください。
+
+テーマ: ${themeLabels || '（指定なし）'}
+追加キーワード: ${kw || '（なし）'}
+
+各トピックについて以下をJSON配列のみで返してください（前後の説明文・コードブロック記号不要）:
+[
+  {
+    "headline": "記事の見出し案（30字以内）",
+    "summary": "問題点の要約（100字程度）",
+    "topics": ["関連テーマID"],
+    "keyPoints": ["指摘ポイント1", "指摘ポイント2", "指摘ポイント3"],
+    "dataHints": ["参照すべき統計・データのヒント"]
+  }
+]
+
+テーマIDの一覧:
+koukin / nichibenren / kyosanto / nikkyoso / seikatuhogo / imin / media / anpo`;
+
+    let text = await callClaude('あなたは日本の政治・社会問題に詳しい保守系アナリストです。JSONのみを返してください。', prompt, 3000);
+    text = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+    const s = text.indexOf('['), e = text.lastIndexOf(']');
+    if (s !== -1 && e !== -1) text = text.substring(s, e + 1);
+    topics = JSON.parse(text);
+    renderTopics();
+  } catch(err) {
+    console.error('トピック検索エラー:', err);
+    container.innerHTML = `<div class="error-msg">❌ エラー: ${esc(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔍 トピックを検索';
+  }
+}
+
+// ===== トピック表示 =====
+function renderTopics() {
+  const container = document.getElementById('topicsContainer');
+  if (!topics.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>トピックが見つかりませんでした</p></div>';
+    return;
+  }
+  container.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'topics-container';
+  topics.forEach((t, i) => wrap.appendChild(createTopicCard(t, i)));
+  container.appendChild(wrap);
+}
+
+function createTopicCard(topic, idx) {
+  const draft = drafts[idx];
+  const hasDraft = !!(draft && draft.length);
+  const card = document.createElement('div');
+  card.className = 'topic-card';
+  card.id = `card-${idx}`;
+
+  const tagsHtml = (topic.topics || []).map(t => `<span class="topic-tag">${esc(THEME_LABELS[t] || t)}</span>`).join('');
+  const kpHtml = (topic.keyPoints || []).map(p => `<li>${esc(p)}</li>`).join('');
+  const dhHtml = (topic.dataHints || []).map(d => `<li>${esc(d)}</li>`).join('');
+
+  const draftHtml = hasDraft
+    ? `<div class="draft-area" id="draft-area-${idx}">
+        <textarea id="draft-text-${idx}" onchange="saveDraft(${idx},this.value)">${esc(draft)}</textarea>
+        <div class="draft-actions">
+          <button class="btn btn-secondary" onclick="copyDraft(${idx})">📋 コピー</button>
+          <button class="btn btn-secondary" onclick="openEvidenceModal(${idx})">📎 エビデンスを添付</button>
+          <button class="btn btn-secondary" onclick="clearDraft(${idx})">🗑️ 削除</button>
+        </div>
+      </div>`
+    : `<div class="draft-area" id="draft-area-${idx}" style="display:none;"></div>`;
+
+  card.innerHTML = `
+    <div class="topic-card-header">
+      <div class="topic-headline">${esc(topic.headline || '（タイトルなし）')}</div>
+      <span class="status-badge ${hasDraft ? 'status-done' : 'status-idle'}" id="status-${idx}">${hasDraft ? '✓ 完了' : '待機中'}</span>
+    </div>
+    <div class="topic-summary">${esc(topic.summary || '')}</div>
+    <div class="topic-tags">${tagsHtml}</div>
+    <div class="topic-details">
+      <div class="detail-box">
+        <div class="detail-box-title">📌 指摘ポイント</div>
+        <ul>${kpHtml}</ul>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">📊 参照データヒント</div>
+        <ul>${dhHtml}</ul>
+      </div>
+    </div>
+    <div class="topic-actions">
+      <button class="btn btn-primary" id="gen-btn-${idx}" onclick="generateArticle(${idx})">✍️ 記事生成</button>
+    </div>
+    ${draftHtml}
+  `;
+  return card;
+}
+
+// ===== 記事生成 =====
+async function generateArticle(idx) {
+  const topic = topics[idx];
+  if (!topic) return;
+  const genBtn = document.getElementById(`gen-btn-${idx}`);
+  const badge = document.getElementById(`status-${idx}`);
+  const draftArea = document.getElementById(`draft-area-${idx}`);
+
+  genBtn.disabled = true;
+  genBtn.innerHTML = '<span class="loading-spinner"></span>生成中...';
+  badge.className = 'status-badge status-generating';
+  badge.textContent = '生成中...';
+
+  try {
+    const prompt = `以下のトピックについてNote投稿用の記事を執筆してください。
+
+【見出し案】${topic.headline}
+【問題点の要約】${topic.summary}
+【指摘すべきポイント】
+${(topic.keyPoints || []).map((p,i) => `${i+1}. ${p}`).join('\n')}
+【参照すべきデータ・統計のヒント】
+${(topic.dataHints || []).join('\n')}
+
+上記を踏まえ、保守的観点から1500〜2000字のNote記事を執筆してください。
+Note向けのマークダウン形式で出力してください。`;
+
+    const text = await callClaude(SYSTEM_PROMPT_ARTICLE, prompt, 3000);
+    saveDraft(idx, text);
+
+    draftArea.style.display = '';
+    draftArea.innerHTML = `
+      <textarea id="draft-text-${idx}" onchange="saveDraft(${idx},this.value)">${esc(text)}</textarea>
+      <div class="draft-actions">
+        <button class="btn btn-secondary" onclick="copyDraft(${idx})">📋 コピー</button>
+        <button class="btn btn-secondary" onclick="openEvidenceModal(${idx})">📎 エビデンスを添付</button>
+        <button class="btn btn-secondary" onclick="clearDraft(${idx})">🗑️ 削除</button>
+      </div>`;
+
+    badge.className = 'status-badge status-done';
+    badge.textContent = '✓ 完了';
+    genBtn.innerHTML = '✍️ 再生成';
+  } catch(err) {
+    console.error(`記事生成エラー(${idx}):`, err);
+    badge.className = 'status-badge status-error';
+    badge.textContent = 'エラー';
+    draftArea.style.display = '';
+    draftArea.innerHTML = `<div class="error-msg">❌ エラー: ${esc(err.message)}</div>`;
+    genBtn.innerHTML = '✍️ 再試行';
+  } finally {
+    genBtn.disabled = false;
+  }
+}
+
+// ===== 下書き管理 =====
+function saveDraft(idx, text) {
+  drafts[idx] = text;
+  localStorage.setItem(LS_DRAFTS, JSON.stringify(drafts));
+}
+function clearDraft(idx) {
+  if (!confirm('この下書きを削除しますか？')) return;
+  delete drafts[idx];
+  localStorage.setItem(LS_DRAFTS, JSON.stringify(drafts));
+  const da = document.getElementById(`draft-area-${idx}`);
+  da.style.display = 'none'; da.innerHTML = '';
+  const b = document.getElementById(`status-${idx}`);
+  b.className = 'status-badge status-idle'; b.textContent = '待機中';
+  document.getElementById(`gen-btn-${idx}`).innerHTML = '✍️ 記事生成';
+}
+async function copyDraft(idx) {
+  const ta = document.getElementById(`draft-text-${idx}`);
+  if (!ta) return;
+  try { await navigator.clipboard.writeText(ta.value); }
+  catch(e) { ta.select(); document.execCommand('copy'); }
+  showToast('✓ クリップボードにコピーしました');
+}
+
+// ===== エビデンス添付モーダル =====
+function openEvidenceModal(idx) {
+  evidenceTargetIdx = idx;
+  const list = document.getElementById('modalMemoList');
+  if (!memos.length) {
+    list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">メモがありません。メモ帳タブで追加してください。</p>';
+  } else {
+    list.innerHTML = memos.map((m, i) => `
+      <div class="modal-memo-item" onclick="attachEvidence(${i})">
+        <div class="title">${esc(m.title)}</div>
+        <div class="preview">${esc(m.body)}</div>
+      </div>`).join('');
+  }
+  document.getElementById('evidenceModal').classList.remove('hidden');
+}
+function closeEvidenceModal() {
+  document.getElementById('evidenceModal').classList.add('hidden');
+  evidenceTargetIdx = null;
+}
+function attachEvidence(memoIdx) {
+  const memo = memos[memoIdx];
+  if (!memo || evidenceTargetIdx === null) return;
+  const ta = document.getElementById(`draft-text-${evidenceTargetIdx}`);
+  if (!ta) return;
+  const append = `\n\n---\n**【エビデンス】${memo.title}**\n${memo.body}`;
+  ta.value += append;
+  saveDraft(evidenceTargetIdx, ta.value);
+  closeEvidenceModal();
+  showToast('✓ エビデンスを添付しました');
+}
+
+// ===== 都道府県・市町村 =====
+function initPrefSelect() {
+  const sel = document.getElementById('prefSelect');
+  Object.keys(PREF_CITY_DATA).forEach(pref => {
+    const opt = document.createElement('option');
+    opt.value = pref; opt.textContent = pref;
+    sel.appendChild(opt);
+  });
+}
+function onPrefChange() {
+  const pref = document.getElementById('prefSelect').value;
+  const citySel = document.getElementById('citySelect');
+  citySel.innerHTML = '<option value="">市町村を選択...</option>';
+  document.getElementById('municipalLinks').innerHTML = '';
+  if (!pref) return;
+  (PREF_CITY_DATA[pref] || []).forEach(city => {
+    const opt = document.createElement('option');
+    opt.value = city; opt.textContent = city;
+    citySel.appendChild(opt);
+  });
+}
+function onCityChange() {
+  const pref = document.getElementById('prefSelect').value;
+  const city = document.getElementById('citySelect').value;
+  const linksEl = document.getElementById('municipalLinks');
+  linksEl.innerHTML = '';
+  if (!city) return;
+  const name = encodeURIComponent(city);
+  const links = [
+    { label: '🌐 公式サイト', url: `https://www.google.com/search?q=${name}+公式サイト` },
+    { label: '📜 議会議事録', url: `https://www.google.com/search?q=${name}+議会議事録+検索` },
+    { label: '💰 決算書・予算書', url: `https://www.google.com/search?q=${name}+決算書+生活保護+扶助費` },
+    { label: '📄 情報公開請求', url: `https://www.google.com/search?q=${name}+情報公開請求+外国人+生活保護` }
+  ];
+  links.forEach(l => {
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="${l.url}" target="_blank" rel="noopener">${l.label}</a>`;
+    linksEl.appendChild(li);
+  });
+}
+
+// ===== 調査ガイド =====
+function renderGuide() {
+  const theme = document.getElementById('guideThemeSelect').value;
+  const el = document.getElementById('guideContent');
+  if (!theme || !GUIDE_DATA[theme]) { el.innerHTML = ''; return; }
+  el.innerHTML = '<div class="guide-steps">' +
+    GUIDE_DATA[theme].map(s => `
+      <div class="guide-step">
+        <div class="guide-step-label">${s.step}</div>
+        <p>${esc(s.text)}</p>
+        ${s.url ? `<a href="${s.url}" target="_blank" rel="noopener">→ ${s.url}</a>` : ''}
+        ${s.note ? `<p style="font-size:11px;color:var(--text-muted);margin-top:2px;">${esc(s.note)}</p>` : ''}
+      </div>`).join('') +
+    '</div>';
+}
+
+// ===== 国会議事録検索 =====
+function searchKokkai() {
+  const kw = document.getElementById('kokkaiKeyword').value.trim();
+  if (!kw) { alert('キーワードを入力してください'); return; }
+  window.open(`https://kokkai.ndl.go.jp/#/simple?keyword=${encodeURIComponent(kw)}`, '_blank');
+}
+
+// ===== 情報公開テンプレ生成 =====
+async function generateTemplate() {
+  const municipality = document.getElementById('templateMunicipality').value.trim();
+  const theme = document.getElementById('templateTheme').value.trim();
+  if (!municipality || !theme) { alert('自治体名と請求テーマを入力してください'); return; }
+  if (!getApiKey()) { alert('APIキーを入力・保存してください'); return; }
+
+  const btn = document.getElementById('templateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>生成中...';
+
+  try {
+    const prompt = `以下の条件で情報公開請求の文書を作成してください。
+
+自治体名：${municipality}
+請求テーマ：${theme}
+
+【形式】
+・行政機関への正式な請求文書として作成
+・請求する文書名を具体的に列挙（3〜5件）
+・根拠法令（情報公開条例）を明記
+・丁寧な文体
+・400字程度`;
+
+    const text = await callClaude('あなたは行政手続きの専門家です。情報公開請求の文書を作成してください。', prompt, 1000);
+    const resultEl = document.getElementById('templateResult');
+    document.getElementById('templateText').value = text;
+    resultEl.style.display = '';
+  } catch(err) {
+    console.error('テンプレ生成エラー:', err);
+    alert('エラー: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✍️ テンプレ生成';
+  }
+}
+async function copyTemplate() {
+  const ta = document.getElementById('templateText');
+  try { await navigator.clipboard.writeText(ta.value); }
+  catch(e) { ta.select(); document.execCommand('copy'); }
+  showToast('✓ クリップボードにコピーしました');
+}
+
+// ===== メモ帳 =====
+function addMemo() {
+  const title = document.getElementById('memoTitle').value.trim();
+  const body = document.getElementById('memoBody').value.trim();
+  if (!title && !body) { alert('タイトルまたは本文を入力してください'); return; }
+  memos.unshift({ id: Date.now(), title: title || '（無題）', body, date: new Date().toLocaleDateString('ja-JP') });
+  localStorage.setItem(LS_MEMOS, JSON.stringify(memos));
+  document.getElementById('memoTitle').value = '';
+  document.getElementById('memoBody').value = '';
+  renderMemos();
+  showToast('✓ メモを追加しました');
+}
+function deleteMemo(id) {
+  if (!confirm('このメモを削除しますか？')) return;
+  memos = memos.filter(m => m.id !== id);
+  localStorage.setItem(LS_MEMOS, JSON.stringify(memos));
+  renderMemos();
+}
+async function copyMemo(id) {
+  const m = memos.find(m => m.id === id);
+  if (!m) return;
+  try { await navigator.clipboard.writeText(`${m.title}\n\n${m.body}`); }
+  catch(e) {}
+  showToast('✓ コピーしました');
+}
+function renderMemos() {
+  const el = document.getElementById('memoList');
+  if (!memos.length) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>メモがありません。調査中に見つけた情報をストックしましょう。</p></div>';
+    return;
+  }
+  el.innerHTML = '<div class="memo-list">' +
+    memos.map(m => `
+      <div class="memo-card">
+        <div class="memo-card-header">
+          <div class="memo-card-title">${esc(m.title)}</div>
+          <div class="memo-card-date">${esc(m.date || '')}</div>
+        </div>
+        <div class="memo-card-body">${esc(m.body)}</div>
+        <div class="memo-card-actions">
+          <button class="btn btn-secondary" onclick="copyMemo(${m.id})">📋 コピー</button>
+          <button class="btn btn-secondary" onclick="deleteMemo(${m.id})">🗑️ 削除</button>
+        </div>
+      </div>`).join('') +
+    '</div>';
+}
+
+// ===== トースト =====
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== ユーティリティ =====
+function esc(s) {
+  if (typeof s !== 'string') return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// ===== 起動 =====
+init();
+</script>
+</body>
+</html>
