@@ -555,6 +555,214 @@
 
     /* 全幅セクション */
     .ev-full { grid-column: 1 / -1; }
+
+    /* ===== 記事分析タブ ===== */
+    .analysis-input-area {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .analysis-input-area textarea {
+      width: 100%;
+      min-height: 200px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.7;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .analysis-input-area textarea:focus { border-color: var(--accent); }
+    .analysis-input-area textarea::placeholder { color: var(--text-muted); }
+    .analysis-input-area input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .analysis-input-area input[type="text"]:focus { border-color: var(--accent); }
+    .analysis-input-area input[type="text"]::placeholder { color: var(--text-muted); }
+
+    .analysis-status {
+      text-align: center;
+      padding: 16px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* 分析結果ブロック */
+    .analysis-block {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      border-left: 4px solid;
+    }
+    .analysis-block-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .analysis-block-body {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .analysis-block-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .analysis-block-list li {
+      padding: 3px 0 3px 14px;
+      position: relative;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .analysis-block-list li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      font-size: 10px;
+    }
+
+    /* 注意表現カード */
+    .suspicious-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .suspicious-tag {
+      display: inline-block;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #fff;
+    }
+    .suspicious-quote {
+      font-size: 13px;
+      color: var(--text-bright);
+      font-style: italic;
+      margin-bottom: 4px;
+      padding-left: 8px;
+      border-left: 2px solid var(--border);
+    }
+    .suspicious-reason {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* 要取得データカード */
+    .required-data-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .required-data-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .data-card {
+      border: 1px solid;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      background: var(--bg);
+    }
+    .data-card-header {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .data-priority-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .data-category-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      background: #21262d;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .data-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 5px;
+    }
+    .data-card-reason {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      line-height: 1.5;
+    }
+    .data-card-source {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .data-card-source span {
+      color: var(--info);
+    }
+    .data-card-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* 記事生成連携ボタン */
+    .analysis-generate-area {
+      text-align: center;
+      padding: 16px;
+      margin-top: 8px;
+    }
+    .btn-analysis-generate {
+      padding: 12px 32px;
+      font-size: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-analysis-generate:hover { opacity: 0.88; }
+    .btn-analysis-generate:active { transform: scale(0.97); }
   </style>
 </head>
 <body>
@@ -577,6 +785,7 @@
   <!-- タブ -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('draft', this)">📝 下書き生成</button>
+    <button class="tab-btn" onclick="switchTab('analysis', this)">🔬 記事分析</button>
     <button class="tab-btn" onclick="switchTab('evidence', this)">🔍 エビデンス収集</button>
     <button class="tab-btn" onclick="switchTab('memo', this)">📋 メモ帳</button>
   </div>
@@ -673,6 +882,69 @@
           <textarea id="templateText"></textarea>
           <button class="btn btn-secondary" onclick="copyTemplate()">📋 コピー</button>
         </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== タブ2: 記事分析 ===== -->
+  <div id="tab-analysis" class="tab-panel">
+
+    <!-- 入力エリア -->
+    <div class="analysis-input-area">
+      <div class="section-title" style="margin-bottom:12px;">📰 分析する記事を貼り付け</div>
+      <textarea id="analysisArticleText" placeholder="分析したい記事の本文をここに貼り付けてください。&#10;全文でも部分的でも構いません。"></textarea>
+      <input type="text" id="analysisMediaName" placeholder="メディア名（任意）：例）朝日新聞、毎日新聞">
+      <div style="display:flex;justify-content:center;">
+        <button class="btn btn-primary btn-search" id="analyzeBtn" onclick="analyzeArticle()" style="background:linear-gradient(135deg,#e94560,#c73652);">🔬 記事を分析する</button>
+      </div>
+    </div>
+
+    <!-- 分析ステータス -->
+    <div id="analysisStatus" style="display:none;" class="analysis-status"></div>
+
+    <!-- 分析結果 -->
+    <div id="analysisResult" style="display:none;">
+
+      <!-- 記事の主張サマリー -->
+      <div class="analysis-block" style="background:#0d1117;border-left-color:#58a6ff;">
+        <div class="analysis-block-title" style="color:#58a6ff;">📰 記事の主張</div>
+        <div class="analysis-block-body" id="resultSummary"></div>
+      </div>
+
+      <!-- 主な論点 -->
+      <div class="analysis-block" style="background:#0d1117;border-left-color:#8b949e;">
+        <div class="analysis-block-title" style="color:#8b949e;">🎯 主な論点</div>
+        <ul class="analysis-block-list" id="resultMainClaims"></ul>
+      </div>
+
+      <!-- 注意すべき表現 -->
+      <div class="analysis-block" style="background:#1a0f0f;border-left-color:#f85149;">
+        <div class="analysis-block-title" style="color:#f85149;">⚠️ 注意すべき表現・手法</div>
+        <div id="resultSuspicious"></div>
+      </div>
+
+      <!-- 欠落している視点 -->
+      <div class="analysis-block" style="background:#0f1a0f;border-left-color:#3fb950;">
+        <div class="analysis-block-title" style="color:#3fb950;">🔍 記事が触れていない視点</div>
+        <ul class="analysis-block-list" id="resultMissingPerspectives"></ul>
+      </div>
+
+      <!-- 保守的反論の切り口 -->
+      <div class="analysis-block" style="background:#1a0f14;border-left-color:#e94560;">
+        <div class="analysis-block-title" style="color:#e94560;">🗾 保守的反論の切り口</div>
+        <div class="analysis-block-body" id="resultConservativeAngle"></div>
+      </div>
+
+      <!-- 要取得データ -->
+      <div class="required-data-section">
+        <div class="required-data-title">📋 要取得データ</div>
+        <div id="resultRequiredData"></div>
+      </div>
+
+      <!-- 記事生成連携ボタン -->
+      <div class="analysis-generate-area">
+        <button class="btn-analysis-generate" onclick="generateFromAnalysis()">✍️ この分析で記事を生成する</button>
       </div>
 
     </div>
@@ -1296,6 +1568,303 @@ function showToast(msg) {
 function esc(s) {
   if (typeof s !== 'string') return '';
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// ===== 記事分析 =====
+const LS_ANALYSIS = 'conservative_note_analysis';
+let lastAnalysisResult = null;
+
+const SYSTEM_PROMPT_ANALYSIS = `あなたは保守系論客として、左翼・リベラル系メディアの記事を精読・分析します。
+
+【分析の視点】
+- 記事の表面的な主張と隠れた意図を分離する
+- センセーショナルな表現・大げさなサマリーを指摘する
+- 事実と意見が混在している箇所を特定する
+- 数値・統計の恣意的な使い方を指摘する
+- 意図的に省略されている視点・データを推測する
+
+【厳守事項】
+- 本文に書かれていないことは推測と明記する
+- 確認できた事実と分析意見を明確に区別する
+- 断定表現は本文に明記されている内容のみに使用する`;
+
+async function analyzeArticle() {
+  const articleText = document.getElementById('analysisArticleText').value.trim();
+  const mediaName = document.getElementById('analysisMediaName').value.trim() || '不明';
+
+  if (!articleText) { alert('記事本文を入力してください'); return; }
+  if (articleText.length < 100) {
+    alert('記事本文が短すぎます。より多くの本文を貼り付けてください。');
+    return;
+  }
+  if (!getApiKey()) { alert('APIキーを入力・保存してください'); return; }
+
+  const btn = document.getElementById('analyzeBtn');
+  const statusEl = document.getElementById('analysisStatus');
+  const resultEl = document.getElementById('analysisResult');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading-spinner"></span>分析中...';
+  statusEl.style.display = '';
+  resultEl.style.display = 'none';
+
+  const steps = ['⏳ 記事を精読中...', '🔍 論点を抽出中...', '📊 要取得データを整理中...'];
+  let stepIdx = 0;
+  statusEl.textContent = steps[0];
+  const stepTimer = setInterval(() => {
+    stepIdx = (stepIdx + 1) % steps.length;
+    statusEl.textContent = steps[stepIdx];
+  }, 2000);
+
+  try {
+    const prompt = `以下の記事を分析してください。
+
+メディア名：${mediaName}
+記事本文：
+${articleText}
+
+以下の形式でJSONのみ返してください（前後の説明文・コードブロック記号不要）：
+{
+  "summary": "記事の主張を客観的に要約（100字）",
+  "mainClaims": [
+    "主張1",
+    "主張2",
+    "主張3"
+  ],
+  "suspiciousExpressions": [
+    {
+      "expression": "問題のある表現・文章",
+      "reason": "なぜ問題か",
+      "type": "誇張 / 事実混同 / 省略 / 誘導 / その他"
+    }
+  ],
+  "missingPerspectives": [
+    "記事が意図的に触れていないと思われる視点1",
+    "視点2"
+  ],
+  "requiredData": [
+    {
+      "priority": "最優先 / 推奨 / 任意",
+      "category": "統計データ / 国会議事録 / 予算決算 / 情報公開請求 / 判例・声明 / その他",
+      "title": "取得すべきデータ名",
+      "reason": "なぜこのデータが必要か（反証・補強の根拠）",
+      "source": "出典・取得先（例：厚労省 被保護者調査）",
+      "url": "取得先URL（わかる場合のみ）",
+      "searchKeyword": "検索推奨キーワード"
+    }
+  ],
+  "conservativeAngle": "保守的観点からの反論の切り口（150字）"
+}`;
+
+    let text = await callClaude(SYSTEM_PROMPT_ANALYSIS, prompt, 3000);
+    clearInterval(stepTimer);
+    statusEl.textContent = '✅ 分析完了';
+
+    // JSONパース
+    text = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+    const s = text.indexOf('{'), e = text.lastIndexOf('}');
+    if (s !== -1 && e !== -1) text = text.substring(s, e + 1);
+
+    let result;
+    try {
+      result = JSON.parse(text);
+    } catch(parseErr) {
+      throw new Error('分析結果のJSONパースに失敗しました。もう一度お試しください。');
+    }
+
+    lastAnalysisResult = { ...result, mediaName };
+    localStorage.setItem(LS_ANALYSIS, JSON.stringify(lastAnalysisResult));
+
+    renderAnalysisResult(result);
+    resultEl.style.display = '';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 1500);
+
+  } catch(err) {
+    clearInterval(stepTimer);
+    console.error('記事分析エラー:', err);
+    statusEl.innerHTML = `<div class="error-msg">❌ エラー: ${esc(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔬 記事を分析する';
+  }
+}
+
+function renderAnalysisResult(result) {
+  // サマリー
+  document.getElementById('resultSummary').textContent = result.summary || '';
+
+  // 主な論点
+  const claimsEl = document.getElementById('resultMainClaims');
+  claimsEl.innerHTML = (result.mainClaims || []).map(c => `<li>${esc(c)}</li>`).join('');
+
+  // 注意すべき表現
+  const suspEl = document.getElementById('resultSuspicious');
+  if (!result.suspiciousExpressions || !result.suspiciousExpressions.length) {
+    suspEl.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">特に問題のある表現は検出されませんでした。</p>';
+  } else {
+    suspEl.innerHTML = result.suspiciousExpressions.map(s => {
+      const tagColor = getSuspiciousTagColor(s.type);
+      return `<div class="suspicious-card">
+        <span class="suspicious-tag" style="background:${tagColor};">${esc(s.type || 'その他')}</span>
+        <div class="suspicious-quote">「${esc(s.expression || '')}」</div>
+        <div class="suspicious-reason">→ ${esc(s.reason || '')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // 欠落している視点
+  const missingEl = document.getElementById('resultMissingPerspectives');
+  missingEl.innerHTML = (result.missingPerspectives || []).map(p => `<li>${esc(p)}</li>`).join('');
+
+  // 保守的反論の切り口
+  document.getElementById('resultConservativeAngle').textContent = result.conservativeAngle || '';
+
+  // 要取得データ
+  renderRequiredData(result.requiredData || []);
+}
+
+function getSuspiciousTagColor(type) {
+  const map = {
+    '誇張': '#f85149',
+    '事実混同': '#d29922',
+    '省略': '#8b949e',
+    '誘導': '#e94560'
+  };
+  return map[type] || '#8b949e';
+}
+
+function getPriorityColor(priority) {
+  const map = {
+    '最優先': '#f85149',
+    '推奨': '#d29922',
+    '任意': '#8b949e'
+  };
+  return map[priority] || '#8b949e';
+}
+
+function getPriorityBorderColor(priority) {
+  const map = {
+    '最優先': '#f85149',
+    '推奨': '#d29922',
+    '任意': '#30363d'
+  };
+  return map[priority] || '#30363d';
+}
+
+function renderRequiredData(dataList) {
+  const el = document.getElementById('resultRequiredData');
+  if (!dataList.length) {
+    el.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">要取得データはありません。</p>';
+    return;
+  }
+
+  // 優先度順にソート
+  const order = { '最優先': 0, '推奨': 1, '任意': 2 };
+  const sorted = [...dataList].sort((a, b) => (order[a.priority] ?? 3) - (order[b.priority] ?? 3));
+
+  el.innerHTML = sorted.map((d, i) => {
+    const borderColor = getPriorityBorderColor(d.priority);
+    const badgeColor = getPriorityColor(d.priority);
+    const searchUrl = d.url
+      ? d.url
+      : `https://www.google.com/search?q=${encodeURIComponent(d.searchKeyword || d.title || '')}`;
+
+    return `<div class="data-card" style="border-color:${borderColor};">
+      <div class="data-card-header">
+        <span class="data-priority-badge" style="background:${badgeColor};">${esc(d.priority || '')}</span>
+        <span class="data-category-badge">${esc(d.category || '')}</span>
+      </div>
+      <div class="data-card-title">${esc(d.title || '')}</div>
+      <div class="data-card-reason">${esc(d.reason || '')}</div>
+      ${d.source ? `<div class="data-card-source">出典：<span>${esc(d.source)}</span></div>` : ''}
+      <div class="data-card-actions">
+        <button class="btn btn-blue" onclick="searchRequiredData(${i})" style="font-size:12px;padding:5px 12px;">🔍 検索する</button>
+        <button class="btn btn-secondary" onclick="addRequiredDataToMemo(${i})" style="font-size:12px;padding:5px 12px;">📋 メモに追加</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ソート済みデータをグローバルに保持
+  window._sortedRequiredData = sorted;
+}
+
+function searchRequiredData(idx) {
+  const d = (window._sortedRequiredData || [])[idx];
+  if (!d) return;
+  const url = d.url
+    ? d.url
+    : `https://www.google.com/search?q=${encodeURIComponent(d.searchKeyword || d.title || '')}`;
+  window.open(url, '_blank');
+}
+
+function addRequiredDataToMemo(idx) {
+  const d = (window._sortedRequiredData || [])[idx];
+  if (!d) return;
+  const title = `【要取得データ】${d.title || ''}`;
+  const body = [
+    `優先度：${d.priority || ''}`,
+    `カテゴリ：${d.category || ''}`,
+    `理由：${d.reason || ''}`,
+    `出典：${d.source || ''}`,
+    `検索キーワード：${d.searchKeyword || ''}`
+  ].filter(l => !l.endsWith('：')).join('\n');
+
+  memos.unshift({ id: Date.now(), title, body, date: new Date().toLocaleDateString('ja-JP') });
+  localStorage.setItem(LS_MEMOS, JSON.stringify(memos));
+  renderMemos();
+  showToast('✓ メモに追加しました');
+}
+
+// ===== 分析結果から記事生成 =====
+async function generateFromAnalysis() {
+  if (!lastAnalysisResult) { alert('先に記事を分析してください'); return; }
+  if (!getApiKey()) { alert('APIキーを入力・保存してください'); return; }
+
+  // 下書き生成タブに切り替え
+  const draftTabBtn = document.querySelector('.tab-btn');
+  switchTab('draft', draftTabBtn);
+
+  const topicsContainer = document.getElementById('topicsContainer');
+  topicsContainer.innerHTML = '<div class="empty-state"><div class="icon">⏳</div><p>分析結果をもとに記事を生成中...</p></div>';
+
+  const r = lastAnalysisResult;
+  const topPriorityData = (r.requiredData || []).filter(d => d.priority === '最優先');
+  const suspSummary = (r.suspiciousExpressions || []).map(s => `・${s.type}：${s.expression}`).join('\n');
+  const missingStr = (r.missingPerspectives || []).map(p => `・${p}`).join('\n');
+
+  const analysisPrompt = `【分析済み記事の情報】
+メディア：${r.mediaName || '不明'}
+記事の主張：${r.summary || ''}
+保守的反論の切り口：${r.conservativeAngle || ''}
+注意すべき表現：
+${suspSummary || '（なし）'}
+記事が触れていない視点：
+${missingStr || '（なし）'}
+${topPriorityData.length ? `\n最優先で取得すべきデータ：\n${topPriorityData.map(d => `・${d.title}（${d.source || ''}）`).join('\n')}` : ''}
+
+上記の分析を踏まえ、事実に基づいた保守的論評記事を執筆してください。
+Note向けのマークダウン形式で1500〜2000字で出力してください。`;
+
+  try {
+    const text = await callClaude(SYSTEM_PROMPT_ARTICLE, analysisPrompt, 3000);
+
+    // 仮のトピックとして追加
+    const fakeTopic = {
+      headline: `【分析記事】${r.mediaName || ''}の報道への反論`,
+      summary: r.summary || '',
+      topics: [],
+      keyPoints: [],
+      dataHints: []
+    };
+    topics = [fakeTopic, ...topics];
+    saveDraft(0, text);
+
+    renderTopics();
+    showToast('✓ 分析結果をもとに記事を生成しました');
+  } catch(err) {
+    console.error('分析→記事生成エラー:', err);
+    topicsContainer.innerHTML = `<div class="error-msg">❌ エラー: ${esc(err.message)}</div>`;
+  }
 }
 
 // ===== 起動 =====
