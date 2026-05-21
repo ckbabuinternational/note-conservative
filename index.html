@@ -553,6 +553,141 @@
     ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
     ::-webkit-scrollbar-thumb:hover { background: #484f58; }
 
+    /* ===== 引用元カード ===== */
+    .news-sources-section {
+      margin-top: 12px;
+      margin-bottom: 10px;
+    }
+    .news-sources-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .news-source-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+    }
+    .news-source-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3px;
+      gap: 8px;
+    }
+    .news-source-media {
+      color: #58a6ff;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .news-source-date {
+      color: #8b949e;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .news-source-title {
+      color: #c9d1d9;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+    .news-source-link {
+      color: #58a6ff;
+      font-size: 11px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .news-source-link:hover { text-decoration: underline; }
+
+    /* ニュース一覧パネル */
+    .news-panel {
+      margin-top: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+    .news-panel-toggle {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .news-panel-toggle:hover { color: var(--text); }
+    .news-panel-body { margin-top: 8px; }
+    .news-panel-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .news-panel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .news-panel-content { flex: 1; min-width: 0; }
+    .news-panel-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+      gap: 8px;
+    }
+    .news-panel-media {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-bright);
+    }
+    .news-panel-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .news-panel-headline {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.4;
+      margin-bottom: 3px;
+      word-break: break-all;
+    }
+    .news-panel-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .news-panel-open {
+      color: #58a6ff;
+      font-size: 11px;
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .news-panel-open:hover { text-decoration: underline; }
+
     /* 全幅セクション */
     .ev-full { grid-column: 1 / -1; }
 
@@ -1107,8 +1242,171 @@ const GUIDE_DATA = {
   ]
 };
 
+// ===== RSS・引用元関連 =====
+const GOOGLE_NEWS_RSS = 'https://news.google.com/rss/search?q={KEYWORD}+when:2d&hl=ja&gl=JP&ceid=JP:ja';
+const RSS2JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+// メディア別カラー
+const MEDIA_COLORS = {
+  '朝日新聞': '#e94560',
+  '毎日新聞': '#58a6ff',
+  'NHK': '#3fb950',
+  '産経新聞': '#f5a623',
+  '読売新聞': '#d29922',
+  '日本経済新聞': '#58a6ff',
+  '東京新聞': '#8b949e',
+  'default': '#8b949e'
+};
+
+// ドメインからメディア名を推定
+function extractDomain(url) {
+  try {
+    const domain = new URL(url).hostname.replace('www.', '');
+    const mediaMap = {
+      'asahi.com': '朝日新聞',
+      'mainichi.jp': '毎日新聞',
+      'yomiuri.co.jp': '読売新聞',
+      'nikkei.com': '日本経済新聞',
+      'sankei.com': '産経新聞',
+      'nhk.or.jp': 'NHK',
+      'jiji.com': '時事通信',
+      'kyodo.co.jp': '共同通信',
+      'tokyo-np.co.jp': '東京新聞',
+      'huffingtonpost.jp': 'ハフポスト',
+      'buzzfeed.com': 'BuzzFeed',
+      'news.yahoo.co.jp': 'Yahoo!ニュース',
+      'reuters.com': 'ロイター',
+      'afpbb.com': 'AFP'
+    };
+    return mediaMap[domain] || domain;
+  } catch {
+    return '不明';
+  }
+}
+
+// 日付フォーマット
+function formatPubDate(dateStr) {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  } catch { return ''; }
+}
+
+// Google News RSSから記事を取得（2日以内フィルタリング付き）
+async function fetchNewsForKeyword(keyword) {
+  const rssUrl = GOOGLE_NEWS_RSS.replace('{KEYWORD}', encodeURIComponent(keyword));
+  const apiUrl = RSS2JSON_API + encodeURIComponent(rssUrl);
+  try {
+    const res = await fetch(apiUrl);
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.items || !data.items.length) return [];
+
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+    const filtered = data.items.filter(item => {
+      if (!item.pubDate) return true; // 日付不明は通す
+      const pubDate = new Date(item.pubDate);
+      return pubDate >= twoDaysAgo;
+    });
+
+    return filtered.slice(0, 8).map(item => ({
+      title: item.title || '',
+      url: item.link || '',
+      source: (item.source && item.source.name) ? item.source.name : extractDomain(item.link || ''),
+      pubDate: item.pubDate || '',
+      description: item.description ? item.description.replace(/<[^>]+>/g, '').substring(0, 100) : ''
+    }));
+  } catch(e) {
+    console.warn('RSS取得エラー:', e);
+    return [];
+  }
+}
+
+// 引用元HTMLを生成（トピックカード用）
+function buildSourcesHtml(newsItems) {
+  if (!newsItems || !newsItems.length) return '';
+  const cards = newsItems.slice(0, 3).map(item => {
+    const dateStr = formatPubDate(item.pubDate);
+    return `<div class="news-source-card">
+      <div class="news-source-header">
+        <span class="news-source-media">${esc(item.source)}</span>
+        <span class="news-source-date">${esc(dateStr)}</span>
+      </div>
+      <div class="news-source-title">${esc(item.title)}</div>
+      <a class="news-source-link" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">🔗 記事を開く</a>
+    </div>`;
+  }).join('');
+  return `<div class="news-sources-section">
+    <div class="news-sources-title">📰 引用元ニュース</div>
+    ${cards}
+  </div>`;
+}
+
+// ニュース一覧パネルHTMLを生成
+function buildNewsPanelHtml(newsItems, idx) {
+  if (!newsItems || !newsItems.length) return '';
+  const count = newsItems.length;
+  const items = newsItems.map(item => {
+    const dateStr = formatPubDate(item.pubDate);
+    const color = MEDIA_COLORS[item.source] || MEDIA_COLORS['default'];
+    return `<div class="news-panel-item">
+      <div class="news-panel-dot" style="background:${color};"></div>
+      <div class="news-panel-content">
+        <div class="news-panel-meta">
+          <span class="news-panel-media">${esc(item.source)}</span>
+          <span class="news-panel-date">${esc(dateStr)}</span>
+        </div>
+        <div class="news-panel-headline">${esc(item.title)}</div>
+        ${item.description ? `<div class="news-panel-desc">${esc(item.description)}</div>` : ''}
+      </div>
+      <a class="news-panel-open" href="${esc(item.url)}" target="_blank" rel="noopener noreferrer">🔗 開く</a>
+    </div>`;
+  }).join('');
+
+  return `<div class="news-panel" id="news-panel-${idx}">
+    <button class="news-panel-toggle" onclick="toggleNewsPanel(${idx})">
+      <span id="news-panel-arrow-${idx}">▶</span> 取得したニュース（2日以内・${count}件）
+    </button>
+    <div class="news-panel-body" id="news-panel-body-${idx}" style="display:none;">
+      ${items}
+    </div>
+  </div>`;
+}
+
+function toggleNewsPanel(idx) {
+  const body = document.getElementById(`news-panel-body-${idx}`);
+  const arrow = document.getElementById(`news-panel-arrow-${idx}`);
+  if (!body) return;
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? '' : 'none';
+  if (arrow) arrow.textContent = isHidden ? '▼' : '▶';
+}
+
+// 引用元テキストを生成（記事プロンプト用）
+function buildSourcesText(newsItems) {
+  if (!newsItems || !newsItems.length) return '';
+  return newsItems.slice(0, 5).map(item => {
+    const dateStr = formatPubDate(item.pubDate);
+    return `・${item.source}「${item.title}」(${dateStr}) ${item.url}`;
+  }).join('\n');
+}
+
+// 引用元マークダウンを生成（記事末尾用）
+function buildSourcesMarkdown(newsItems) {
+  if (!newsItems || !newsItems.length) return '';
+  const lines = newsItems.slice(0, 5).map(item => {
+    const dateStr = formatPubDate(item.pubDate);
+    return `- [${item.source}「${item.title}」](${item.url}) (${dateStr})`;
+  }).join('\n');
+  return `\n\n---\n## 参考情報\n${lines}\n※本記事は上記報道を参考に、保守的観点から論評したものです。`;
+}
+
 // ===== 状態 =====
 let topics = [];
+let topicNewsMap = {}; // idx -> newsItems
 let drafts = {};
 let memos = [];
 let evidenceTargetIdx = null;
@@ -1210,7 +1508,8 @@ async function searchTopics() {
     "summary": "問題点の要約（100字程度）",
     "topics": ["関連テーマID"],
     "keyPoints": ["指摘ポイント1", "指摘ポイント2", "指摘ポイント3"],
-    "dataHints": ["参照すべき統計・データのヒント"]
+    "dataHints": ["参照すべき統計・データのヒント"],
+    "searchKeyword": "Google Newsで検索するキーワード（日本語・15字以内）"
   }
 ]
 
@@ -1222,6 +1521,20 @@ koukin / nichibenren / kyosanto / nikkyoso / seikatuhogo / imin / media / anpo`;
     const s = text.indexOf('['), e = text.lastIndexOf(']');
     if (s !== -1 && e !== -1) text = text.substring(s, e + 1);
     topics = JSON.parse(text);
+    topicNewsMap = {};
+
+    // 各トピックのRSSを非同期で取得
+    container.innerHTML = '<div class="empty-state"><div class="icon">📰</div><p>ニュースを取得中...</p></div>';
+    await Promise.all(topics.map(async (topic, i) => {
+      const searchKw = topic.searchKeyword || topic.headline || '';
+      if (searchKw) {
+        const newsItems = await fetchNewsForKeyword(searchKw);
+        topicNewsMap[i] = newsItems;
+      } else {
+        topicNewsMap[i] = [];
+      }
+    }));
+
     renderTopics();
   } catch(err) {
     console.error('トピック検索エラー:', err);
@@ -1257,6 +1570,16 @@ function createTopicCard(topic, idx) {
   const kpHtml = (topic.keyPoints || []).map(p => `<li>${esc(p)}</li>`).join('');
   const dhHtml = (topic.dataHints || []).map(d => `<li>${esc(d)}</li>`).join('');
 
+  // 引用元ニュース
+  const newsItems = topicNewsMap[idx] || [];
+  const sourcesHtml = buildSourcesHtml(newsItems);
+  const newsPanelHtml = buildNewsPanelHtml(newsItems, idx);
+
+  // 0件メッセージ
+  const noNewsHtml = (newsItems.length === 0)
+    ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;padding:6px 0;">📭 直近2日以内のニュースが見つかりませんでした。キーワードを変更するか、期間を広げてください。</div>`
+    : '';
+
   const draftHtml = hasDraft
     ? `<div class="draft-area" id="draft-area-${idx}">
         <textarea id="draft-text-${idx}" onchange="saveDraft(${idx},this.value)">${esc(draft)}</textarea>
@@ -1285,7 +1608,10 @@ function createTopicCard(topic, idx) {
         <ul>${dhHtml}</ul>
       </div>
     </div>
-    <div class="topic-actions">
+    ${sourcesHtml}
+    ${noNewsHtml}
+    ${newsPanelHtml}
+    <div class="topic-actions" style="margin-top:10px;">
       <button class="btn btn-primary" id="gen-btn-${idx}" onclick="generateArticle(${idx})">✍️ 記事生成</button>
     </div>
     ${draftHtml}
@@ -1307,6 +1633,10 @@ async function generateArticle(idx) {
   badge.textContent = '生成中...';
 
   try {
+    const newsItems = topicNewsMap[idx] || [];
+    const sourcesText = buildSourcesText(newsItems);
+    const sourcesMarkdown = buildSourcesMarkdown(newsItems);
+
     const prompt = `以下のトピックについてNote投稿用の記事を執筆してください。
 
 【見出し案】${topic.headline}
@@ -1315,11 +1645,13 @@ async function generateArticle(idx) {
 ${(topic.keyPoints || []).map((p,i) => `${i+1}. ${p}`).join('\n')}
 【参照すべきデータ・統計のヒント】
 ${(topic.dataHints || []).join('\n')}
+${sourcesText ? `\n【参考にしたニュース（直近2日以内）】\n${sourcesText}` : ''}
 
 上記を踏まえ、保守的観点から1500〜2000字のNote記事を執筆してください。
-Note向けのマークダウン形式で出力してください。`;
+Note向けのマークダウン形式で出力してください。
+${sourcesText ? `\n記事末尾に以下の参考情報セクションを追記してください：\n${sourcesMarkdown}` : ''}`;
 
-    const text = await callClaude(SYSTEM_PROMPT_ARTICLE, prompt, 3000);
+    const text = await callClaude(SYSTEM_PROMPT_ARTICLE, prompt, 3500);
     saveDraft(idx, text);
 
     draftArea.style.display = '';
