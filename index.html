@@ -691,6 +691,144 @@
     /* 全幅セクション */
     .ev-full { grid-column: 1 / -1; }
 
+    /* ===== 収集済みデータセクション ===== */
+    .collected-data-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .collected-data-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .collected-data-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-bright);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .collected-data-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .collected-data-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .collected-tab-btn {
+      background: #21262d;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .collected-tab-btn:hover { background: #2d333b; color: var(--text); }
+    .collected-tab-btn.active { background: #1a0a0e; border-color: var(--accent); color: var(--text-bright); }
+    .collected-filter-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .collected-filter-row label {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .collected-filter-row input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: var(--text-bright);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+    .collected-filter-row input:focus { border-color: var(--accent); }
+    .collected-filter-row input::placeholder { color: var(--text-muted); }
+    .collected-record-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      transition: border-color 0.2s;
+    }
+    .collected-record-card:hover { border-color: #30363d; }
+    .collected-record-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .collected-record-date {
+      font-size: 12px;
+      color: var(--info);
+      font-weight: 600;
+    }
+    .collected-record-source {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .collected-record-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .collected-record-body {
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+    .collected-record-body.collapsed {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+    .collected-record-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .collected-empty {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text-muted);
+    }
+    .collected-empty .icon { font-size: 32px; margin-bottom: 10px; opacity: 0.5; }
+    .collected-empty p { font-size: 13px; line-height: 1.8; }
+    .collected-empty code {
+      background: #21262d;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 12px;
+      color: var(--success);
+    }
+
     /* ===== 記事分析タブ ===== */
     .analysis-input-area {
       background: var(--bg-card);
@@ -973,6 +1111,34 @@
 
   <!-- ===== タブ2: エビデンス収集 ===== -->
   <div id="tab-evidence" class="tab-panel">
+
+    <!-- 収集済みデータセクション -->
+    <div class="collected-data-section">
+      <div class="collected-data-header">
+        <div>
+          <div class="collected-data-title">📂 収集済みデータ</div>
+          <div class="collected-data-meta" id="collectedDataMeta">collect.py を実行するとデータが表示されます</div>
+        </div>
+        <button class="btn btn-secondary" onclick="reloadCollectedData()" style="font-size:12px;padding:6px 12px;">🔄 データを再読み込み</button>
+      </div>
+      <div class="collected-data-tabs">
+        <button class="collected-tab-btn active" id="ctab-kokkai" onclick="switchCollectedTab('kokkai', this)">🏛️ 国会議事録</button>
+        <button class="collected-tab-btn" id="ctab-estat" onclick="switchCollectedTab('estat', this)">📊 統計</button>
+        <button class="collected-tab-btn" id="ctab-news" onclick="switchCollectedTab('news', this)">📰 ニュース</button>
+        <button class="collected-tab-btn" id="ctab-houjin" onclick="switchCollectedTab('houjin', this)">🏢 法人</button>
+      </div>
+      <div class="collected-filter-row">
+        <label>キーワードで絞り込み：</label>
+        <input type="text" id="collectedFilterInput" placeholder="キーワードを入力..." oninput="renderCollectedData()">
+      </div>
+      <div id="collectedDataContainer">
+        <div class="collected-empty">
+          <div class="icon">📂</div>
+          <p>データを読み込み中...</p>
+        </div>
+      </div>
+    </div>
+
     <div class="evidence-grid">
 
       <!-- 自治体ドリルダウン -->
@@ -2718,6 +2884,213 @@ function init() {
     }
   };
 })();
+
+// ===== 収集済みデータ機能 =====
+let collectedDataCache = {};
+let currentCollectedTab = 'kokkai';
+
+async function loadCollectedData(type) {
+  try {
+    const res = await fetch(`data/${type}.json`);
+    if (!res.ok) {
+      return null;
+    }
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+async function reloadCollectedData() {
+  collectedDataCache = {};
+  document.getElementById('collectedFilterInput').value = '';
+  await loadAndRenderCollectedTab(currentCollectedTab);
+}
+
+async function loadAndRenderCollectedTab(type) {
+  const container = document.getElementById('collectedDataContainer');
+  container.innerHTML = '<div class="collected-empty"><div class="icon">⏳</div><p>読み込み中...</p></div>';
+
+  if (!collectedDataCache[type]) {
+    const data = await loadCollectedData(type);
+    collectedDataCache[type] = data;
+  }
+
+  renderCollectedData();
+}
+
+function switchCollectedTab(type, btn) {
+  currentCollectedTab = type;
+  document.querySelectorAll('.collected-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('collectedFilterInput').value = '';
+  loadAndRenderCollectedTab(type);
+}
+
+function renderCollectedData() {
+  const container = document.getElementById('collectedDataContainer');
+  const metaEl = document.getElementById('collectedDataMeta');
+  const filterKw = (document.getElementById('collectedFilterInput').value || '').trim().toLowerCase();
+  const data = collectedDataCache[currentCollectedTab];
+
+  if (!data) {
+    container.innerHTML = `<div class="collected-empty">
+      <div class="icon">📂</div>
+      <p>データがありません。<br>以下の手順でデータを収集してください：<br><br>
+      1. フォルダを右クリック<br>
+      2. <code>Open Git Bash here</code><br>
+      3. <code>python collect.py</code> を実行</p>
+    </div>`;
+    metaEl.textContent = 'データ未取得';
+    return;
+  }
+
+  const updated = data.updated ? new Date(data.updated).toLocaleString('ja-JP') : '不明';
+  metaEl.textContent = `最終更新：${updated}　全${data.total || 0}件`;
+
+  let records = data.records || [];
+
+  // キーワードフィルタ
+  if (filterKw) {
+    records = records.filter(r => {
+      const searchTarget = JSON.stringify(r).toLowerCase();
+      return searchTarget.includes(filterKw);
+    });
+  }
+
+  if (!records.length) {
+    container.innerHTML = `<div class="collected-empty"><div class="icon">🔍</div><p>「${esc(filterKw)}」に一致するデータがありません。</p></div>`;
+    return;
+  }
+
+  container.innerHTML = records.map((r, i) => buildCollectedRecordCard(r, i, currentCollectedTab)).join('');
+}
+
+function buildCollectedRecordCard(r, idx, type) {
+  if (type === 'kokkai') {
+    const date = r.date ? r.date.replace(/-/g, '/') : '';
+    const speaker = r.role ? `${r.speaker}（${r.role}）` : r.speaker || '';
+    const shortSpeech = (r.speech || '').substring(0, 200);
+    const hasMore = (r.speech || '').length > 200;
+    return `<div class="collected-record-card">
+      <div class="collected-record-meta">
+        <span class="collected-record-date">${esc(date)}</span>
+        <span class="collected-record-source">${esc(r.house || '')} ${esc(r.committee || '')}</span>
+      </div>
+      <div class="collected-record-title">${esc(speaker)}</div>
+      <div class="collected-record-body collapsed" id="crec-body-${idx}">「${esc(shortSpeech)}${hasMore ? '…' : ''}」</div>
+      <div class="collected-record-actions">
+        ${hasMore ? `<button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="toggleCollectedBody(${idx}, '${esc(r.speech || '')}')">▼ 続きを読む</button>` : ''}
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="addCollectedToMemo(${idx})">📋 メモに追加</button>
+        ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="btn btn-blue" style="font-size:11px;padding:4px 10px;text-decoration:none;">🔗 開く</a>` : ''}
+      </div>
+    </div>`;
+  } else if (type === 'estat') {
+    return `<div class="collected-record-card">
+      <div class="collected-record-meta">
+        <span class="collected-record-date">${esc(r.openDate || '')}</span>
+        <span class="collected-record-source">${esc(r.org || '')}</span>
+      </div>
+      <div class="collected-record-title">${esc(r.title || '')}</div>
+      <div class="collected-record-actions">
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="addCollectedToMemo(${idx})">📋 メモに追加</button>
+        ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="btn btn-blue" style="font-size:11px;padding:4px 10px;text-decoration:none;">🔗 統計を開く</a>` : ''}
+      </div>
+    </div>`;
+  } else if (type === 'news') {
+    const pubDate = r.publishedAt ? r.publishedAt.replace('T', ' ').substring(0, 16) : '';
+    return `<div class="collected-record-card">
+      <div class="collected-record-meta">
+        <span class="collected-record-date">${esc(pubDate)}</span>
+        <span class="collected-record-source">${esc(r.source || '')}</span>
+      </div>
+      <div class="collected-record-title">${esc(r.title || '')}</div>
+      ${r.description ? `<div class="collected-record-body">${esc(r.description)}</div>` : ''}
+      <div class="collected-record-actions">
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="addCollectedToMemo(${idx})">📋 メモに追加</button>
+        ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="btn btn-blue" style="font-size:11px;padding:4px 10px;text-decoration:none;">🔗 記事を開く</a>` : ''}
+      </div>
+    </div>`;
+  } else if (type === 'houjin') {
+    const addr = [r.prefecture, r.city, r.address].filter(Boolean).join('');
+    return `<div class="collected-record-card">
+      <div class="collected-record-meta">
+        <span class="collected-record-date">${esc(r.corporateNumber || '')}</span>
+        <span class="collected-record-source">${esc(r.kind || '')}</span>
+      </div>
+      <div class="collected-record-title">${esc(r.name || '')}</div>
+      ${addr ? `<div class="collected-record-body">${esc(addr)}</div>` : ''}
+      ${r.closeDate ? `<div class="collected-record-body" style="color:var(--error);">閉鎖日：${esc(r.closeDate)}</div>` : ''}
+      <div class="collected-record-actions">
+        <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="addCollectedToMemo(${idx})">📋 メモに追加</button>
+        ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="btn btn-blue" style="font-size:11px;padding:4px 10px;text-decoration:none;">🔗 法人情報を開く</a>` : ''}
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+function toggleCollectedBody(idx, fullText) {
+  const el = document.getElementById(`crec-body-${idx}`);
+  if (!el) return;
+  const isCollapsed = el.classList.contains('collapsed');
+  if (isCollapsed) {
+    el.classList.remove('collapsed');
+    el.textContent = `「${fullText}」`;
+    // ボタンテキスト更新
+    const btn = el.nextElementSibling ? el.nextElementSibling.querySelector('button') : null;
+    if (btn) btn.textContent = '▲ 閉じる';
+  } else {
+    el.classList.add('collapsed');
+    el.textContent = `「${fullText.substring(0, 200)}…」`;
+    const btn = el.nextElementSibling ? el.nextElementSibling.querySelector('button') : null;
+    if (btn) btn.textContent = '▼ 続きを読む';
+  }
+}
+
+function addCollectedToMemo(idx) {
+  const data = collectedDataCache[currentCollectedTab];
+  if (!data) return;
+  const filterKw = (document.getElementById('collectedFilterInput').value || '').trim().toLowerCase();
+  let records = data.records || [];
+  if (filterKw) {
+    records = records.filter(r => JSON.stringify(r).toLowerCase().includes(filterKw));
+  }
+  const r = records[idx];
+  if (!r) return;
+
+  let title = '';
+  let body = '';
+
+  if (currentCollectedTab === 'kokkai') {
+    const date = r.date ? r.date.replace(/-/g, '/') : '';
+    const speaker = r.role ? `${r.speaker}（${r.role}）` : r.speaker || '';
+    title = `【国会議事録】${date} ${r.house || ''} ${r.committee || ''}`;
+    body = [`日付：${date}`, `院・委員会：${r.house || ''} ${r.committee || ''}`, `発言者：${speaker}`, `発言内容：「${(r.speech || '').substring(0, 300)}」`, r.url ? `URL：${r.url}` : ''].filter(Boolean).join('\n');
+  } else if (currentCollectedTab === 'estat') {
+    title = `【政府統計】${r.title || ''}`;
+    body = [`統計名：${r.title || ''}`, `提供機関：${r.org || ''}`, `公開日：${r.openDate || ''}`, r.url ? `URL：${r.url}` : ''].filter(Boolean).join('\n');
+  } else if (currentCollectedTab === 'news') {
+    title = `【ニュース】${r.title || ''}`;
+    body = [`タイトル：${r.title || ''}`, `メディア：${r.source || ''}`, `公開日：${r.publishedAt || ''}`, `概要：${r.description || ''}`, r.url ? `URL：${r.url}` : ''].filter(Boolean).join('\n');
+  } else if (currentCollectedTab === 'houjin') {
+    title = `【法人情報】${r.name || ''}`;
+    body = [`法人名：${r.name || ''}`, `法人番号：${r.corporateNumber || ''}`, `種別：${r.kind || ''}`, `住所：${[r.prefecture, r.city, r.address].filter(Boolean).join('')}`, r.closeDate ? `閉鎖日：${r.closeDate}` : '', r.url ? `URL：${r.url}` : ''].filter(Boolean).join('\n');
+  }
+
+  memos.unshift({ id: Date.now(), title, body, date: new Date().toLocaleDateString('ja-JP') });
+  localStorage.setItem(LS_MEMOS, JSON.stringify(memos));
+  renderMemos();
+  showToast('✓ メモに追加しました');
+}
+
+// ===== 初期化時に収集済みデータを読み込む =====
+const _origInitFinal = init;
+function init() {
+  _origInitFinal();
+  // 収集済みデータの初期読み込み
+  loadAndRenderCollectedTab('kokkai');
+}
 
 // ===== 起動 =====
 init();
