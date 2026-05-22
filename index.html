@@ -1114,7 +1114,8 @@
       <div class="collected-data-tabs">
         <button class="collected-tab-btn active" id="ctab-kokkai" onclick="switchCollectedTab('kokkai', this)">🏛️ 国会議事録</button>
         <button class="collected-tab-btn" id="ctab-estat" onclick="switchCollectedTab('estat', this)">📊 統計</button>
-        <button class="collected-tab-btn" id="ctab-news" onclick="switchCollectedTab('news', this)">📰 ニュース</button>
+        <button class="collected-tab-btn" id="ctab-news" onclick="switchCollectedTab('news', this)">📰 NewsAPI</button>
+        <button class="collected-tab-btn" id="ctab-google_news" onclick="switchCollectedTab('google_news', this)">🔍 Google News</button>
         <button class="collected-tab-btn" id="ctab-houjin" onclick="switchCollectedTab('houjin', this)">🏢 法人</button>
       </div>
       <div class="collected-filter-row">
@@ -1755,6 +1756,25 @@ koukin / nichibenren / kyosanto / nikkyoso / seikatuhogo / imin / media / anpo`;
     topics = JSON.parse(text);
     topicNewsMap = {};
 
+    // 収集済みニュースデータをAIプロンプトに追加するため読み込む
+    let newsContext = '';
+    try {
+      const newsData = await fetch('data/news.json').then(r => r.ok ? r.json() : null);
+      if (newsData && newsData.records && newsData.records.length) {
+        const newsItems = newsData.records.slice(0, 10)
+          .map(r => `・[${r.source || ''}] ${r.title || ''} (${(r.publishedAt || '').slice(0, 10)})`).join('\n');
+        newsContext += `【NewsAPI収集済みニュース】\n${newsItems}\n\n`;
+      }
+    } catch(e) { /* スキップ */ }
+    try {
+      const gnData = await fetch('data/google_news.json').then(r => r.ok ? r.json() : null);
+      if (gnData && gnData.records && gnData.records.length) {
+        const gnItems = gnData.records.slice(0, 10)
+          .map(r => `・[${r.source || ''}] ${r.title || ''} (${(r.publishedAt || '').slice(0, 10)})`).join('\n');
+        newsContext += `【Google News収集済みニュース】\n${gnItems}`;
+      }
+    } catch(e) { /* スキップ */ }
+
     // 各トピックのRSSを非同期で取得
     container.innerHTML = '<div class="empty-state"><div class="icon">📰</div><p>ニュースを取得中...</p></div>';
     await Promise.all(topics.map(async (topic, i) => {
@@ -1766,6 +1786,14 @@ koukin / nichibenren / kyosanto / nikkyoso / seikatuhogo / imin / media / anpo`;
         topicNewsMap[i] = [];
       }
     }));
+
+    // newsContextをトピックカードのdataHintsに追記（AIへの参考情報として）
+    if (newsContext) {
+      topics = topics.map(t => ({
+        ...t,
+        _newsContext: newsContext
+      }));
+    }
 
     renderTopics();
   } catch(err) {
@@ -1877,6 +1905,7 @@ async function generateArticle(idx) {
 ${(topic.keyPoints || []).map((p,i) => `${i+1}. ${p}`).join('\n')}
 【参照すべきデータ・統計のヒント】
 ${(topic.dataHints || []).join('\n')}
+${topic._newsContext ? `\n【収集済みニュース（参考）】\n${topic._newsContext}` : ''}
 ${sourcesText ? `\n【参考にしたニュース（直近2日以内）】\n${sourcesText}` : ''}
 
 上記を踏まえ、保守的観点から1500〜2000字のNote記事を執筆してください。
@@ -2998,7 +3027,7 @@ function buildCollectedRecordCard(r, idx, type) {
         ${r.url ? `<a href="${esc(r.url)}" target="_blank" rel="noopener" class="btn btn-blue" style="font-size:11px;padding:4px 10px;text-decoration:none;">🔗 統計を開く</a>` : ''}
       </div>
     </div>`;
-  } else if (type === 'news') {
+  } else if (type === 'news' || type === 'google_news') {
     const pubDate = r.publishedAt ? r.publishedAt.replace('T', ' ').substring(0, 16) : '';
     return `<div class="collected-record-card">
       <div class="collected-record-meta">
@@ -3071,8 +3100,9 @@ function addCollectedToMemo(idx) {
   } else if (currentCollectedTab === 'estat') {
     title = `【政府統計】${r.title || ''}`;
     body = [`統計名：${r.title || ''}`, `提供機関：${r.org || ''}`, `公開日：${r.openDate || ''}`, r.url ? `URL：${r.url}` : ''].filter(Boolean).join('\n');
-  } else if (currentCollectedTab === 'news') {
-    title = `【ニュース】${r.title || ''}`;
+  } else if (currentCollectedTab === 'news' || currentCollectedTab === 'google_news') {
+    const label = currentCollectedTab === 'google_news' ? 'Google News' : 'ニュース';
+    title = `【${label}】${r.title || ''}`;
     body = [`タイトル：${r.title || ''}`, `メディア：${r.source || ''}`, `公開日：${r.publishedAt || ''}`, `概要：${r.description || ''}`, r.url ? `URL：${r.url}` : ''].filter(Boolean).join('\n');
   } else if (currentCollectedTab === 'houjin') {
     title = `【法人情報】${r.name || ''}`;

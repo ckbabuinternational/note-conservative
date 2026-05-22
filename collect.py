@@ -1,7 +1,8 @@
 import json
 import requests
 import os
-from datetime import datetime, timedelta
+import feedparser
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # 設定読み込み
@@ -212,11 +213,74 @@ def collect_houjin():
     })
 
 
+def collect_google_news():
+    print('🔍 Google News RSSを収集中...')
+    results = []
+    keywords = config['search_keywords']['news']
+
+    # 2日前の日時（タイムゾーン対応）
+    two_days_ago = datetime.now(timezone.utc) - timedelta(days=2)
+
+    for keyword in keywords:
+        url = (
+            f"https://news.google.com/rss/search"
+            f"?q={requests.utils.quote(keyword)}"
+            f"+when:2d&hl=ja&gl=JP&ceid=JP:ja"
+        )
+        try:
+            feed = feedparser.parse(url)
+            count = 0
+            for entry in feed.entries:
+                # 日付パース
+                try:
+                    pub = datetime(*entry.published_parsed[:6], tzinfo=timezone.utc)
+                except Exception:
+                    pub = datetime.now(timezone.utc)
+
+                # 2日以内のみ取得
+                if pub < two_days_ago:
+                    continue
+
+                # ソース名を抽出
+                source = ''
+                if hasattr(entry, 'source'):
+                    source = entry.source.get('title', '')
+                if not source and ' - ' in entry.title:
+                    source = entry.title.rsplit(' - ', 1)[-1]
+
+                # タイトルからソース名を除去
+                title = entry.title
+                if source and title.endswith(f' - {source}'):
+                    title = title[:-(len(source) + 3)]
+
+                results.append({
+                    'keyword': keyword,
+                    'title': title,
+                    'source': source,
+                    'url': entry.link,
+                    'publishedAt': pub.isoformat(),
+                    'description': entry.get('summary', '')
+                })
+                count += 1
+
+            print(f'  [{keyword}] {count}件取得')
+
+        except Exception as e:
+            print(f'  [{keyword}] エラー: {e}')
+
+    save_json('google_news.json', {
+        'updated': datetime.now().isoformat(),
+        'total': len(results),
+        'records': results
+    })
+
+
 def main():
     print('=== データ収集開始 ===')
     collect_kokkai()
     collect_estat()
     collect_news()
+    collect_google_news()
     collect_houjin()
     print('=== 全収集完了 ===')
 
