@@ -1633,19 +1633,23 @@ async function loadConfig() {
   if (_configLoaded) return;
   try {
     const res = await fetch('config.json');
-    if (!res.ok) return;
-    const cfg = await res.json();
-    if (cfg.anthropic_api_key) {
-      document.getElementById('apiKeyInput').value = cfg.anthropic_api_key;
-      localStorage.setItem(LS_APIKEY, cfg.anthropic_api_key);
+    if (!res.ok) {
+      console.warn('config.json が見つかりません。localStorageのキーを使用します。');
+      return;
     }
-    if (cfg.estat_api_key) {
-      document.getElementById('estatApiKeyInput').value = cfg.estat_api_key;
-      localStorage.setItem(LS_ESTAT_APIKEY, cfg.estat_api_key);
+    const cfg = await res.json();
+    if (cfg.anthropic_api_key && cfg.anthropic_api_key.trim()) {
+      document.getElementById('apiKeyInput').value = cfg.anthropic_api_key.trim();
+      localStorage.setItem(LS_APIKEY, cfg.anthropic_api_key.trim());
+    }
+    if (cfg.estat_api_key && cfg.estat_api_key.trim()) {
+      document.getElementById('estatApiKeyInput').value = cfg.estat_api_key.trim();
+      localStorage.setItem(LS_ESTAT_APIKEY, cfg.estat_api_key.trim());
     }
     _configLoaded = true;
+    console.log('✅ config.json からAPIキーを読み込みました');
   } catch(e) {
-    // config.json が無い場合はlocalStorageのキーを使用
+    console.warn('config.json の読み込みに失敗しました:', e);
   }
 }
 
@@ -1661,14 +1665,21 @@ function init() {
   initPrefSelect();
   renderMemos();
 
-  // config.jsonからAPIキーを読み込む（非同期）
+  // config.jsonからAPIキーを読み込む（非同期・優先）
   loadConfig();
 }
 
 // ===== APIキー（後方互換のため残す） =====
 function saveApiKey() {}
 function clearApiKey() {}
-function getApiKey() { return document.getElementById('apiKeyInput').value.trim(); }
+function getApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) {
+    // config.jsonがまだ読み込まれていない場合は再試行
+    loadConfig();
+  }
+  return key;
+}
 
 // ===== タブ切り替え =====
 function switchTab(name, btn) {
